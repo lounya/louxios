@@ -2,18 +2,18 @@
   "name": "@lounya/louxios",
   "version": "1.0.0",
   "description": "Axios-based HTTP client with automatic cookie management, proxy support, and rate limiting",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
       },
       "require": {
-        "types": "./dist/index.d.cts",
-        "default": "./dist/index.cjs"
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
       }
     }
   },
@@ -45,7 +45,6 @@
   },
   "devDependencies": {
     "@types/node": "^25.3.3",
-    "@types/tough-cookie": "^4.0.5",
     "axios": "^1.7.0",
     "tsup": "^8.0.0",
     "typescript": "^5.5.0"

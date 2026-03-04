@@ -6,7 +6,7 @@ import { Semaphore, SemaphoreInterface } from 'async-mutex'
 import axios from 'axios'
 import { CookieJar } from 'tough-cookie'
 import { CookieClientError, ECookieClientError, isError } from './errors'
-import { handleResponse, modifyRequest } from './interceptors'
+import { handleResponse, modifyRequest, resolveUrl } from './interceptors'
 import { getAgents } from './proxy'
 import { sleep } from './utils'
 import Releaser = SemaphoreInterface.Releaser
@@ -45,7 +45,7 @@ export default class CookieClient {
 
   private initializeClient(
     initialConfig: Omit<TInitialConfig, 'useSemaphore'>,
-  ): TOrError {
+  ): void {
     const {
       proxy,
       validateStatus,
@@ -77,7 +77,6 @@ export default class CookieClient {
     if (typeof validateStatus === 'function') {
       this.validateStatus = validateStatus
     }
-    return null
   }
 
   async request<T = unknown>(
@@ -101,16 +100,33 @@ export default class CookieClient {
 
       if (
         maxRedirects > 0
-        && [301, 302, 307, 308].includes(response.status)
+        && [301, 302, 303, 307, 308].includes(response.status)
         && redirectCount < maxRedirects
         && response.headers.location
       ) {
-        const method = response.status === 303 ? 'GET' : requestConfig.method
+        const currentUrl = resolveUrl(requestConfig) ?? requestConfig.url
+        const redirectUrl = currentUrl
+          ? new URL(response.headers.location, currentUrl).toString()
+          : response.headers.location
+
+        const currentMethod = (requestConfig.method ?? 'GET').toUpperCase()
+        const shouldChangeToGet = [301, 302, 303].includes(response.status)
+          && currentMethod !== 'GET'
+          && currentMethod !== 'HEAD'
+
+        const method = shouldChangeToGet ? 'GET' : requestConfig.method
+        const data = shouldChangeToGet ? undefined : requestConfig.data
+        const headers = shouldChangeToGet
+          ? { ...requestConfig.headers, 'Content-Type': undefined, 'Content-Length': undefined }
+          : requestConfig.headers
+
         return await this.request(
           {
             ...requestConfig,
-            url: response.headers.location,
+            url: redirectUrl,
             method,
+            data,
+            headers,
           },
           redirectCount + 1,
         )
@@ -130,6 +146,7 @@ export default class CookieClient {
     }
     finally {
       if (useSemaphore) {
+        // Slot is held during sleep to enforce a minimum gap between requests per slot
         await sleep(timeoutBetweenRequests)
 
         release!()

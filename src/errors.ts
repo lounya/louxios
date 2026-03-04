@@ -52,7 +52,7 @@ export class ErrorBase extends Error {
 }
 
 export function isError(e: unknown): e is ErrorBase {
-  return e instanceof Object && 'message' in e && 'cause' in e && 'stack' in e && 'caller' in e
+  return e instanceof ErrorBase
 }
 
 export enum ECookieClientError {
