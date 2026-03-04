@@ -4,7 +4,7 @@ import type { TInitialConfig } from './types'
 import type { TProxy, TProxyAgents } from './proxy'
 import { Semaphore, SemaphoreInterface } from 'async-mutex'
 import axios from 'axios'
-import CookieJar from './CookieJar'
+import { CookieJar } from 'tough-cookie'
 import { CookieClientError, ECookieClientError, isError } from './errors'
 import { handleResponse, modifyRequest } from './interceptors'
 import { getAgents } from './proxy'
@@ -49,12 +49,11 @@ export default class CookieClient {
     const {
       proxy,
       validateStatus,
-      cookieJar = new CookieJar(),
       maxRedirects = 10,
       ...config
     } = initialConfig
 
-    this.jar = cookieJar
+    this.jar = new CookieJar()
 
     this.maxRedirects = maxRedirects
 
@@ -65,9 +64,9 @@ export default class CookieClient {
       maxRedirects: 0,
     })
 
-    this.axiosInstance.interceptors.request.use(_config => modifyRequest(_config, cookieJar))
+    this.axiosInstance.interceptors.request.use(_config => modifyRequest(_config, this.jar))
 
-    this.axiosInstance.interceptors.response.use(response => handleResponse(response, cookieJar))
+    this.axiosInstance.interceptors.response.use(response => handleResponse(response, this.jar))
 
     if (proxy) {
       const err = this.setProxy(proxy)
