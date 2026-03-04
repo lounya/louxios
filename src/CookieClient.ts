@@ -85,13 +85,16 @@ export default class CookieClient {
     const { useSemaphore, timeoutBetweenRequests, semaphore } = this
     let release: Releaser
 
+    const { maxRedirects: initMaxRedirects, ...requestConfig } = initConfig
+    const maxRedirects = initMaxRedirects ?? this.maxRedirects
+
     if (useSemaphore) {
       const [, rls] = await semaphore.acquire()
       release = rls
     }
 
     try {
-      return await this.executeRequest<T>(initConfig)
+      return await this.executeRequest<T>(requestConfig, maxRedirects)
     }
     finally {
       if (useSemaphore) {
@@ -104,13 +107,10 @@ export default class CookieClient {
   }
 
   private async executeRequest<T = unknown>(
-    initConfig: AxiosRequestConfig,
+    requestConfig: AxiosRequestConfig,
+    maxRedirects: number,
     redirectCount: number = 0,
   ): Promise<TOrError<AxiosResponse<T>>> {
-    const { maxRedirects: initMaxRedirects, ...requestConfig } = initConfig
-
-    const maxRedirects = initMaxRedirects ?? this.maxRedirects
-
     try {
       const response = await this.axiosInstance.request(requestConfig)
 
@@ -144,6 +144,7 @@ export default class CookieClient {
             data,
             headers,
           },
+          maxRedirects,
           redirectCount + 1,
         )
       }
