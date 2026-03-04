@@ -81,19 +81,35 @@ export default class CookieClient {
 
   async request<T = unknown>(
     initConfig: AxiosRequestConfig,
-    redirectCount: number = 0,
   ): Promise<TOrError<AxiosResponse<T>>> {
     const { useSemaphore, timeoutBetweenRequests, semaphore } = this
     let release: Releaser
-
-    const { maxRedirects: initMaxRedirects, ...requestConfig } = initConfig
-
-    const maxRedirects = initMaxRedirects ?? this.maxRedirects
 
     if (useSemaphore) {
       const [, rls] = await semaphore.acquire()
       release = rls
     }
+
+    try {
+      return await this.executeRequest<T>(initConfig)
+    }
+    finally {
+      if (useSemaphore) {
+        // Slot is held during sleep to enforce a minimum gap between requests per slot
+        await sleep(timeoutBetweenRequests)
+
+        release!()
+      }
+    }
+  }
+
+  private async executeRequest<T = unknown>(
+    initConfig: AxiosRequestConfig,
+    redirectCount: number = 0,
+  ): Promise<TOrError<AxiosResponse<T>>> {
+    const { maxRedirects: initMaxRedirects, ...requestConfig } = initConfig
+
+    const maxRedirects = initMaxRedirects ?? this.maxRedirects
 
     try {
       const response = await this.axiosInstance.request(requestConfig)
@@ -120,7 +136,7 @@ export default class CookieClient {
           ? { ...requestConfig.headers, 'Content-Type': undefined, 'Content-Length': undefined }
           : requestConfig.headers
 
-        return await this.request(
+        return await this.executeRequest(
           {
             ...requestConfig,
             url: redirectUrl,
@@ -143,14 +159,6 @@ export default class CookieClient {
     }
     catch (err) {
       return new CookieClientError(ECookieClientError.FatalRequestError, err)
-    }
-    finally {
-      if (useSemaphore) {
-        // Slot is held during sleep to enforce a minimum gap between requests per slot
-        await sleep(timeoutBetweenRequests)
-
-        release!()
-      }
     }
   }
 
