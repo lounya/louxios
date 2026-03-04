@@ -4,7 +4,7 @@ import { HttpsProxyAgent } from 'https-proxy-agent'
 import { SocksProxyAgent } from 'socks-proxy-agent'
 import { ErrorBase } from './errors'
 
-export type TProxy<Uri extends string = any>
+export type TProxy<Uri extends string = string>
   = | HttpProxyAgent<Uri>
     | HttpsProxyAgent<Uri>
     | SocksProxyAgent
@@ -51,7 +51,7 @@ export function getProxyProtocol(str: string | URL): EProxyProtocol {
 
 export function getAgents(
   proxy: string | URL,
-  protocol?: Omit<EProxyProtocol, 'UNKNOWN'>,
+  protocol?: Exclude<EProxyProtocol, EProxyProtocol.UNKNOWN>,
 ): TOrError<{
   http: TProxy
   https: TProxy
