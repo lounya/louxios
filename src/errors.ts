@@ -23,7 +23,7 @@ export class ErrorBase extends Error {
 
   private captureStack(): { stack: string } {
     const errorObj = {} as { stack: string }
-    Error.captureStackTrace(errorObj)
+    Error.captureStackTrace(errorObj, this.constructor)
     return errorObj
   }
 
@@ -31,7 +31,6 @@ export class ErrorBase extends Error {
     if (!stackObj?.stack)
       return ''
     const splitStack = stackObj.stack.split('\n')
-    splitStack.splice(0, 3)
     splitStack[0] = splitStack[0].trim()
     return splitStack.join('\n')
   }
