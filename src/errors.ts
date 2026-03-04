@@ -31,6 +31,8 @@ export class ErrorBase extends Error {
     if (!stackObj?.stack)
       return ''
     const splitStack = stackObj.stack.split('\n')
+    if (splitStack[0]?.trim() === 'Error')
+      splitStack.shift()
     splitStack[0] = splitStack[0].trim()
     return splitStack.join('\n')
   }
