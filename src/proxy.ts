@@ -74,7 +74,9 @@ export function getAgents(
         https: new SocksProxyAgent(proxy),
       }
 
-    default:
-      return new ProxyError(EProxyError.NoProtocolSpecified, { str: proxy })
+    default: {
+      const sanitized = String(proxy).replace(/\/\/([^@]+)@/, '//<credentials>@')
+      return new ProxyError(EProxyError.NoProtocolSpecified, { str: sanitized })
+    }
   }
 }
