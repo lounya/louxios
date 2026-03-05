@@ -33,15 +33,16 @@ export class ErrorBase extends Error {
     const splitStack = stackObj.stack.split('\n')
     if (splitStack[0]?.trim() === 'Error')
       splitStack.shift()
-    splitStack[0] = splitStack[0].trim()
+    if (splitStack[0] != null)
+      splitStack[0] = splitStack[0].trim()
     return splitStack.join('\n')
   }
 
   causeToString(): string {
     return util.inspect(this.cause, {
-      depth: null,
-      maxStringLength: null,
-      maxArrayLength: null,
+      depth: 4,
+      maxStringLength: 1024,
+      maxArrayLength: 20,
     })
   }
 
