@@ -1,4 +1,4 @@
-import type { TOrError } from './errors'
+import { ok, err, type Result } from 'neverthrow'
 import { HttpProxyAgent } from 'http-proxy-agent'
 import { HttpsProxyAgent } from 'https-proxy-agent'
 import { SocksProxyAgent } from 'socks-proxy-agent'
@@ -52,31 +52,28 @@ export function getProxyProtocol(str: string | URL): EProxyProtocol {
 export function getAgents(
   proxy: string | URL,
   protocol?: Exclude<EProxyProtocol, EProxyProtocol.UNKNOWN>,
-): TOrError<{
-  http: TProxy
-  https: TProxy
-}> {
+): Result<TProxyAgents, ProxyError> {
   const p = protocol || getProxyProtocol(proxy)
 
   switch (p) {
     case EProxyProtocol.HTTP:
     case EProxyProtocol.HTTPS:
-      return {
+      return ok({
         http: new HttpProxyAgent(proxy),
         https: new HttpsProxyAgent(proxy),
-      }
+      })
 
     case EProxyProtocol.SOCKS:
     case EProxyProtocol.SOCKS4:
     case EProxyProtocol.SOCKS5:
-      return {
+      return ok({
         http: new SocksProxyAgent(proxy),
         https: new SocksProxyAgent(proxy),
-      }
+      })
 
     default: {
       const sanitized = String(proxy).replace(/\/\/([^@]+)@/, '//<credentials>@')
-      return new ProxyError(EProxyError.NoProtocolSpecified, { str: sanitized })
+      return err(new ProxyError(EProxyError.NoProtocolSpecified, { str: sanitized }))
     }
   }
 }

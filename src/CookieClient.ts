@@ -1,11 +1,11 @@
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
-import type { TOrError } from './errors'
 import type { TInitialConfig } from './types'
 import type { TProxy, TProxyAgents } from './proxy'
+import { ok, err, type Result } from 'neverthrow'
 import { Semaphore } from 'async-mutex'
 import axios from 'axios'
 import { CookieJar } from 'tough-cookie'
-import { CookieClientError, ECookieClientError, isError } from './errors'
+import { CookieClientError, ECookieClientError, ErrorBase } from './errors'
 import { handleResponse, modifyRequest, resolveUrl } from './interceptors'
 import { getAgents } from './proxy'
 import { sleep } from './utils'
@@ -38,6 +38,13 @@ export default class CookieClient {
         throw new CookieClientError(
           'simultaneousRequests must be a positive integer',
           { simultaneousRequests },
+        )
+      }
+
+      if (typeof timeoutBetweenRequests !== 'number' || timeoutBetweenRequests < 0 || !Number.isFinite(timeoutBetweenRequests)) {
+        throw new CookieClientError(
+          'timeoutBetweenRequests must be a non-negative finite number',
+          { timeoutBetweenRequests },
         )
       }
 
@@ -75,9 +82,9 @@ export default class CookieClient {
     this.axiosInstance.interceptors.response.use(response => handleResponse(response, this.jar))
 
     if (proxy) {
-      const err = this.setProxy(proxy)
-      if (isError(err))
-        throw err
+      const result = this.setProxy(proxy)
+      if (result.isErr())
+        throw result.error
     }
 
     if (typeof validateStatus === 'function') {
@@ -87,7 +94,7 @@ export default class CookieClient {
 
   async request<T = unknown>(
     initConfig: AxiosRequestConfig,
-  ): Promise<TOrError<AxiosResponse<T>>> {
+  ): Promise<Result<AxiosResponse<T>, CookieClientError>> {
     const { maxRedirects: initMaxRedirects, ...requestConfig } = initConfig
     const maxRedirects = initMaxRedirects ?? this.maxRedirects
 
@@ -110,7 +117,7 @@ export default class CookieClient {
     requestConfig: AxiosRequestConfig,
     maxRedirects: number,
     redirectCount: number = 0,
-  ): Promise<TOrError<AxiosResponse<T>>> {
+  ): Promise<Result<AxiosResponse<T>, CookieClientError>> {
     try {
       const response = await this.axiosInstance.request(requestConfig)
 
@@ -150,16 +157,16 @@ export default class CookieClient {
       }
 
       if (this.isRequestStatusValid(requestConfig.validateStatus, response)) {
-        return response
+        return ok(response)
       }
 
-      return new CookieClientError(
+      return err(new CookieClientError(
         ECookieClientError.WrongStatusCodeReceived,
         response,
-      )
+      ))
     }
-    catch (err) {
-      return new CookieClientError(ECookieClientError.FatalRequestError, err)
+    catch (e) {
+      return err(new CookieClientError(ECookieClientError.FatalRequestError, e))
     }
   }
 
@@ -174,7 +181,7 @@ export default class CookieClient {
   get<T = unknown>(
     url: string,
     config: AxiosRequestConfig = {},
-  ): Promise<TOrError<AxiosResponse<T>>> {
+  ): Promise<Result<AxiosResponse<T>, CookieClientError>> {
     return this.request({
       ...config,
       url,
@@ -185,7 +192,7 @@ export default class CookieClient {
   post<T = unknown>(
     url: string,
     config: AxiosRequestConfig = {},
-  ): Promise<TOrError<AxiosResponse<T>>> {
+  ): Promise<Result<AxiosResponse<T>, CookieClientError>> {
     return this.request({
       ...config,
       url,
@@ -202,13 +209,12 @@ export default class CookieClient {
     this.axiosInstance.defaults[`${type}Agent`] = agent
   }
 
-  setProxy(proxy: string | TProxyAgents): TOrError<null> {
-    const agents = typeof proxy === 'string' ? getAgents(proxy) : proxy
-    if (isError(agents))
-      return agents
-
-    this.setAgents(agents)
-    return null
+  setProxy(proxy: string | TProxyAgents): Result<null, ErrorBase> {
+    const agents = typeof proxy === 'string' ? getAgents(proxy) : ok(proxy)
+    if (agents.isErr())
+      return err(agents.error)
+    this.setAgents(agents.value)
+    return ok(null)
   }
 
   getAgent(

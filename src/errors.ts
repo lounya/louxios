@@ -1,7 +1,4 @@
 import util from 'node:util'
-
-export type TOrError<T = unknown> = T | ErrorBase
-
 export class ErrorBase extends Error {
   public override stack: string
 
@@ -52,11 +49,6 @@ export class ErrorBase extends Error {
   [cause]: ${this.causeToString()}`
   }
 }
-
-export function isError(e: unknown): e is ErrorBase {
-  return e instanceof ErrorBase
-}
-
 export enum ECookieClientError {
   FatalRequestError = 'A fatal error occurred during the HTTP request.',
   WrongStatusCodeReceived = 'Incorrect status code received during the HTTP request.',

@@ -1,9 +1,10 @@
 export { default as default } from './CookieClient'
 export { default as CookieClient } from './CookieClient'
-export { ErrorBase, CookieClientError, ECookieClientError, isError } from './errors'
+export { ErrorBase, CookieClientError, ECookieClientError } from './errors'
 export { getAgents, getProxyProtocol, EProxyProtocol } from './proxy'
 export { sleep } from './utils'
+export { ok, err } from 'neverthrow'
 
-export type { TOrError } from './errors'
+export type { Result } from 'neverthrow'
 export type { TInitialConfig } from './types'
 export type { TProxy, TProxyAgents } from './proxy'
