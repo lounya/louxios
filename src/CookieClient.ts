@@ -2,14 +2,13 @@ import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import type { TOrError } from './errors'
 import type { TInitialConfig } from './types'
 import type { TProxy, TProxyAgents } from './proxy'
-import { Semaphore, SemaphoreInterface } from 'async-mutex'
+import { Semaphore } from 'async-mutex'
 import axios from 'axios'
 import { CookieJar } from 'tough-cookie'
 import { CookieClientError, ECookieClientError, isError } from './errors'
 import { handleResponse, modifyRequest, resolveUrl } from './interceptors'
 import { getAgents } from './proxy'
 import { sleep } from './utils'
-import Releaser = SemaphoreInterface.Releaser
 
 export default class CookieClient {
   private useSemaphore: boolean = false
@@ -35,6 +34,13 @@ export default class CookieClient {
     } = constructorConfig || {}
 
     if (useSemaphore) {
+      if (!Number.isInteger(simultaneousRequests) || simultaneousRequests < 1) {
+        throw new CookieClientError(
+          'simultaneousRequests must be a positive integer',
+          { simultaneousRequests },
+        )
+      }
+
       this.useSemaphore = true
       this.semaphore = new Semaphore(simultaneousRequests)
       this.timeoutBetweenRequests = timeoutBetweenRequests
@@ -44,7 +50,7 @@ export default class CookieClient {
   }
 
   private initializeClient(
-    initialConfig: Omit<TInitialConfig, 'useSemaphore'>,
+    initialConfig: Omit<TInitialConfig, 'useSemaphore' | 'simultaneousRequests' | 'timeoutBetweenRequests'>,
   ): void {
     const {
       proxy,
@@ -82,27 +88,21 @@ export default class CookieClient {
   async request<T = unknown>(
     initConfig: AxiosRequestConfig,
   ): Promise<TOrError<AxiosResponse<T>>> {
-    const { useSemaphore, timeoutBetweenRequests, semaphore } = this
-    let release: Releaser
-
     const { maxRedirects: initMaxRedirects, ...requestConfig } = initConfig
     const maxRedirects = initMaxRedirects ?? this.maxRedirects
 
-    if (useSemaphore) {
-      const [, rls] = await semaphore.acquire()
-      release = rls
+    if (!this.useSemaphore) {
+      return this.executeRequest<T>(requestConfig, maxRedirects)
     }
 
+    const [, release] = await this.semaphore.acquire()
     try {
       return await this.executeRequest<T>(requestConfig, maxRedirects)
     }
     finally {
-      if (useSemaphore) {
-        // Slot is held during sleep to enforce a minimum gap between requests per slot
-        await sleep(timeoutBetweenRequests)
-
-        release!()
-      }
+      // Slot is held during sleep to enforce a minimum gap between requests per slot
+      await sleep(this.timeoutBetweenRequests)
+      release()
     }
   }
 
@@ -164,13 +164,10 @@ export default class CookieClient {
   }
 
   private isRequestStatusValid(
-    validateStatusFn: unknown,
+    validateStatusFn: AxiosRequestConfig['validateStatus'],
     { status }: AxiosResponse,
   ): boolean {
-    const validateStatus = typeof validateStatusFn === 'function'
-      ? validateStatusFn
-      : this.validateStatus
-
+    const validateStatus = validateStatusFn ?? this.validateStatus
     return validateStatus(status)
   }
 
@@ -196,12 +193,12 @@ export default class CookieClient {
     })
   }
 
-  setAgents({ http, https }: TProxyAgents) {
+  private setAgents({ http, https }: TProxyAgents) {
     this.setAgent(http, 'http')
     this.setAgent(https, 'https')
   }
 
-  setAgent(agent: TProxy, type: 'http' | 'https' = 'http') {
+  private setAgent(agent: TProxy, type: 'http' | 'https' = 'http') {
     this.axiosInstance.defaults[`${type}Agent`] = agent
   }
 
@@ -216,7 +213,7 @@ export default class CookieClient {
 
   getAgent(
     type: 'http' | 'https',
-  ): TProxy {
-    return this.axiosInstance.defaults[`${type}Agent`]
+  ): TProxy | undefined {
+    return this.axiosInstance.defaults[`${type}Agent`] as TProxy | undefined
   }
 }
