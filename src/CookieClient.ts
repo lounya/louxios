@@ -12,19 +12,19 @@ import { sleep } from './utils'
 import Releaser = SemaphoreInterface.Releaser
 
 export default class CookieClient {
-  useSemaphore: boolean = false
+  private useSemaphore: boolean = false
 
-  semaphore!: Semaphore
+  private semaphore!: Semaphore
 
-  timeoutBetweenRequests!: number
+  private timeoutBetweenRequests!: number
 
-  jar!: CookieJar
+  private jar!: CookieJar
 
-  axiosInstance!: AxiosInstance
+  private axiosInstance!: AxiosInstance
 
-  maxRedirects!: number
+  private maxRedirects!: number
 
-  validateStatus: (status: number) => boolean = status => status >= 200 && status < 300
+  private validateStatus: (status: number) => boolean = status => status >= 200 && status < 300
 
   constructor(constructorConfig?: TInitialConfig) {
     const {
@@ -205,7 +205,7 @@ export default class CookieClient {
     this.axiosInstance.defaults[`${type}Agent`] = agent
   }
 
-  setProxy(proxy: string | TProxyAgents): TOrError {
+  setProxy(proxy: string | TProxyAgents): TOrError<null> {
     const agents = typeof proxy === 'string' ? getAgents(proxy) : proxy
     if (isError(agents))
       return agents
