@@ -17,15 +17,6 @@ export function resolveUrl(config: { url?: string, baseURL?: string }): string |
   return undefined
 }
 
-export function tryParseResponseAsJsonOrReturnAsIs(response: string) {
-  try {
-    return JSON.parse(response)
-  }
-  catch {
-    return response
-  }
-}
-
 export function modifyRequest(
   requestConfig: InternalAxiosRequestConfig<any>,
   cookieJar: CookieJar,
@@ -63,7 +54,5 @@ export function handleResponse(
     }
   }
 
-  return typeof response === 'string'
-    ? tryParseResponseAsJsonOrReturnAsIs(response)
-    : response
+  return response
 }
