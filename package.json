@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Axios-based HTTP client with automatic cookie management, proxy support, and rate limiting",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lounya/louxios.git"
+  },
   "keywords": [
     "axios",
     "cookie",
