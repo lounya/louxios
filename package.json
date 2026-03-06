@@ -1,5 +1,5 @@
 {
-  "name": "@lounya/louxios",
+  "name": "louxios",
   "version": "1.0.0",
   "description": "Axios-based HTTP client with automatic cookie management, proxy support, and rate limiting",
   "license": "MIT",
