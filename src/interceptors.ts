@@ -49,7 +49,7 @@ export function handleResponse(
         cookieJar.setCookieSync(cookie, url)
       }
       catch {
-        // Silently ignore malformed cookies — matches browser behavior
+        // Silently ignore malformed cookies - matches browser behavior
       }
     }
   }

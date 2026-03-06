@@ -22,6 +22,7 @@
   ],
   "scripts": {
     "build": "tsup",
+    "test": "vitest run",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -48,6 +49,7 @@
     "@types/node": "^25.3.3",
     "axios": "^1.7.0",
     "tsup": "^8.0.0",
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "vitest": "^4.0.18"
   }
 }
