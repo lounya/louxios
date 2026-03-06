@@ -19,9 +19,9 @@ export default class Louxios {
 
   private timeoutBetweenRequests!: number
 
-  private jar!: CookieJar
+  jar!: CookieJar
 
-  private axiosInstance!: AxiosInstance
+  axiosInstance!: AxiosInstance
 
   private maxRedirects!: number
 
@@ -202,12 +202,12 @@ export default class Louxios {
     })
   }
 
-  private setAgents({ http, https }: TProxyAgents): void {
+  setAgents({ http, https }: TProxyAgents): void {
     this.setAgent(http, 'http')
     this.setAgent(https, 'https')
   }
 
-  private setAgent(agent: TProxy, type: 'http' | 'https' = 'http'): void {
+  setAgent(agent: TProxy, type: 'http' | 'https' = 'http'): void {
     this.axiosInstance.defaults[`${type}Agent`] = agent
   }
 
