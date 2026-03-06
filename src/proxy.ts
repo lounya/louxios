@@ -1,6 +1,7 @@
-import { ok, err, type Result } from 'neverthrow'
+import type { Result } from 'neverthrow'
 import { HttpProxyAgent } from 'http-proxy-agent'
 import { HttpsProxyAgent } from 'https-proxy-agent'
+import { err, ok } from 'neverthrow'
 import { SocksProxyAgent } from 'socks-proxy-agent'
 import { ErrorBase } from './errors'
 

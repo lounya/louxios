@@ -1,4 +1,4 @@
-import { describe, test, expect, vi, afterEach } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { sleep } from '../src/utils'
 
 describe('sleep', () => {
@@ -6,11 +6,13 @@ describe('sleep', () => {
     vi.useRealTimers()
   })
 
-  test('resolves after the specified delay', async () => {
+  it('resolves after the specified delay', async () => {
     vi.useFakeTimers()
 
     let resolved = false
-    const promise = sleep(100).then(() => { resolved = true })
+    const promise = sleep(100).then(() => {
+      resolved = true
+    })
 
     expect(resolved).toBe(false)
 
@@ -23,11 +25,13 @@ describe('sleep', () => {
     await promise
   })
 
-  test('resolves immediately with 0ms delay', async () => {
+  it('resolves immediately with 0ms delay', async () => {
     vi.useFakeTimers()
 
     let resolved = false
-    const promise = sleep(0).then(() => { resolved = true })
+    const promise = sleep(0).then(() => {
+      resolved = true
+    })
 
     await vi.advanceTimersByTimeAsync(0)
     expect(resolved).toBe(true)

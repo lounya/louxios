@@ -1,33 +1,33 @@
-import { describe, test, expect } from 'vitest'
-import { resolveUrl, modifyRequest, handleResponse } from '../src/interceptors'
-import { CookieJar } from 'tough-cookie'
-import { AxiosHeaders } from 'axios'
 import type { AxiosResponse, InternalAxiosRequestConfig } from 'axios'
+import { AxiosHeaders } from 'axios'
+import { CookieJar } from 'tough-cookie'
+import { describe, expect, it } from 'vitest'
+import { handleResponse, modifyRequest, resolveUrl } from '../src/interceptors'
 
 describe('resolveUrl', () => {
-  test('returns absolute URL as-is', () => {
+  it('returns absolute URL as-is', () => {
     expect(resolveUrl({ url: 'https://example.com/path' })).toBe('https://example.com/path')
   })
 
-  test('returns undefined when no url', () => {
+  it('returns undefined when no url', () => {
     expect(resolveUrl({})).toBeUndefined()
   })
 
-  test('resolves relative URL against baseURL', () => {
+  it('resolves relative URL against baseURL', () => {
     expect(resolveUrl({ url: 'api/data', baseURL: 'https://example.com' }))
       .toBe('https://example.com/api/data')
   })
 
-  test('resolves relative URL when baseURL has trailing slash', () => {
+  it('resolves relative URL when baseURL has trailing slash', () => {
     expect(resolveUrl({ url: 'api/data', baseURL: 'https://example.com/' }))
       .toBe('https://example.com/api/data')
   })
 
-  test('returns undefined for relative URL without baseURL', () => {
+  it('returns undefined for relative URL without baseURL', () => {
     expect(resolveUrl({ url: 'api/data' })).toBeUndefined()
   })
 
-  test('returns undefined for invalid baseURL', () => {
+  it('returns undefined for invalid baseURL', () => {
     expect(resolveUrl({ url: 'api/data', baseURL: 'not-a-url' })).toBeUndefined()
   })
 })
@@ -40,7 +40,7 @@ function makeRequestConfig(overrides: Partial<InternalAxiosRequestConfig> = {}):
 }
 
 describe('modifyRequest', () => {
-  test('injects cookies from jar into request headers', () => {
+  it('injects cookies from jar into request headers', () => {
     const jar = new CookieJar()
     jar.setCookieSync('session=abc123', 'https://example.com')
 
@@ -50,7 +50,7 @@ describe('modifyRequest', () => {
     expect(result.headers.Cookie).toBe('session=abc123')
   })
 
-  test('does not set cookie header when jar is empty', () => {
+  it('does not set cookie header when jar is empty', () => {
     const jar = new CookieJar()
     const config = makeRequestConfig({ url: 'https://example.com/page' })
     const result = modifyRequest(config, jar)
@@ -58,7 +58,7 @@ describe('modifyRequest', () => {
     expect(result.headers.Cookie).toBeUndefined()
   })
 
-  test('creates headers if null', () => {
+  it('creates headers if null', () => {
     const jar = new CookieJar()
     const config = { url: 'https://example.com' } as InternalAxiosRequestConfig
     config.headers = null as any
@@ -67,7 +67,7 @@ describe('modifyRequest', () => {
     expect(result.headers).toBeInstanceOf(AxiosHeaders)
   })
 
-  test('does not inject cookies when URL cannot be resolved', () => {
+  it('does not inject cookies when URL cannot be resolved', () => {
     const jar = new CookieJar()
     jar.setCookieSync('session=abc', 'https://example.com')
 
@@ -90,7 +90,7 @@ describe('handleResponse', () => {
     }
   }
 
-  test('stores set-cookie headers in the jar', () => {
+  it('stores set-cookie headers in the jar', () => {
     const jar = new CookieJar()
     const response = makeResponse({
       headers: { 'set-cookie': ['token=xyz; Path=/'] },
@@ -101,7 +101,7 @@ describe('handleResponse', () => {
     expect(jar.getCookieStringSync('https://example.com')).toBe('token=xyz')
   })
 
-  test('stores multiple cookies', () => {
+  it('stores multiple cookies', () => {
     const jar = new CookieJar()
     const response = makeResponse({
       headers: { 'set-cookie': ['a=1; Path=/', 'b=2; Path=/'] },
@@ -114,7 +114,7 @@ describe('handleResponse', () => {
     expect(cookies).toContain('b=2')
   })
 
-  test('ignores response without set-cookie header', () => {
+  it('ignores response without set-cookie header', () => {
     const jar = new CookieJar()
     const response = makeResponse({ headers: {} })
 
@@ -123,7 +123,7 @@ describe('handleResponse', () => {
     expect(jar.getCookieStringSync('https://example.com')).toBe('')
   })
 
-  test('silently ignores malformed cookies', () => {
+  it('silently ignores malformed cookies', () => {
     const jar = new CookieJar()
     const response = makeResponse({
       headers: { 'set-cookie': ['', 'valid=1; Path=/'] },
@@ -133,7 +133,7 @@ describe('handleResponse', () => {
     expect(jar.getCookieStringSync('https://example.com')).toBe('valid=1')
   })
 
-  test('ignores set-cookie when URL cannot be resolved', () => {
+  it('ignores set-cookie when URL cannot be resolved', () => {
     const jar = new CookieJar()
     const response = makeResponse({
       headers: { 'set-cookie': ['leaked=secret; Path=/'] },
@@ -145,7 +145,7 @@ describe('handleResponse', () => {
     expect(jar.getCookieStringSync('https://example.com')).toBe('')
   })
 
-  test('returns the response object', () => {
+  it('returns the response object', () => {
     const jar = new CookieJar()
     const response = makeResponse()
 

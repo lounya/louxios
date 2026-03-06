@@ -1,4 +1,5 @@
 import util from 'node:util'
+
 export class ErrorBase extends Error {
   public override stack: string
 

@@ -3,11 +3,13 @@ import type { CookieJar } from 'tough-cookie'
 import { AxiosHeaders } from 'axios'
 
 export function resolveUrl(config: { url?: string, baseURL?: string }): string | undefined {
-  if (!config.url) return undefined
-  if (/^https?:\/\//.test(config.url)) return config.url
+  if (!config.url)
+    return undefined
+  if (/^https?:\/\//.test(config.url))
+    return config.url
   if (config.baseURL) {
     try {
-      const base = config.baseURL.endsWith('/') ? config.baseURL : config.baseURL + '/'
+      const base = config.baseURL.endsWith('/') ? config.baseURL : `${config.baseURL}/`
       return new URL(config.url, base).toString()
     }
     catch {
@@ -39,7 +41,7 @@ export function modifyRequest(
 export function handleResponse(
   response: AxiosResponse<any, any>,
   cookieJar: CookieJar,
-) {
+): AxiosResponse<any, any> {
   const { headers, config } = response
   const url = resolveUrl(config)
 

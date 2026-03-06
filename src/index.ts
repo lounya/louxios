@@ -1,10 +1,10 @@
-export { default as default } from './louxios'
+export { ELouxiosError, ErrorBase, LouxiosError } from './errors'
+export { default } from './louxios'
 export { default as Louxios } from './louxios'
-export { ErrorBase, LouxiosError, ELouxiosError } from './errors'
-export { getAgents, getProxyProtocol, EProxyProtocol } from './proxy'
-export { sleep } from './utils'
-export { ok, err } from 'neverthrow'
-
-export type { Result } from 'neverthrow'
-export type { TInitialConfig } from './types'
+export { EProxyProtocol, getAgents, getProxyProtocol } from './proxy'
 export type { TProxy, TProxyAgents } from './proxy'
+export type { TInitialConfig } from './types'
+
+export { sleep } from './utils'
+export { err, ok } from 'neverthrow'
+export type { Result } from 'neverthrow'

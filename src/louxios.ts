@@ -1,11 +1,13 @@
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
-import type { TInitialConfig } from './types'
+import type { Result } from 'neverthrow'
+import type { ErrorBase } from './errors'
 import type { TProxy, TProxyAgents } from './proxy'
-import { ok, err, type Result } from 'neverthrow'
+import type { TInitialConfig } from './types'
 import { Semaphore } from 'async-mutex'
 import axios from 'axios'
+import { err, ok } from 'neverthrow'
 import { CookieJar } from 'tough-cookie'
-import { LouxiosError, ELouxiosError, ErrorBase } from './errors'
+import { ELouxiosError, LouxiosError } from './errors'
 import { handleResponse, modifyRequest, resolveUrl } from './interceptors'
 import { getAgents } from './proxy'
 import { sleep } from './utils'
@@ -200,12 +202,12 @@ export default class Louxios {
     })
   }
 
-  private setAgents({ http, https }: TProxyAgents) {
+  private setAgents({ http, https }: TProxyAgents): void {
     this.setAgent(http, 'http')
     this.setAgent(https, 'https')
   }
 
-  private setAgent(agent: TProxy, type: 'http' | 'https' = 'http') {
+  private setAgent(agent: TProxy, type: 'http' | 'https' = 'http'): void {
     this.axiosInstance.defaults[`${type}Agent`] = agent
   }
 

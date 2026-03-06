@@ -1,8 +1,8 @@
-import { describe, test, expect, beforeAll, afterAll } from 'vitest'
-import http from 'node:http'
 import type { AddressInfo } from 'node:net'
+import http from 'node:http'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { ELouxiosError, LouxiosError } from '../src/errors'
 import Louxios from '../src/louxios'
-import { LouxiosError, ELouxiosError } from '../src/errors'
 
 let server: http.Server
 let baseURL: string
@@ -60,7 +60,7 @@ function createServer(): Promise<http.Server> {
       if (url.pathname === '/redirect-with-cookie') {
         res.writeHead(302, {
           'Set-Cookie': 'redirect_token=xyz789; Path=/',
-          Location: '/read-cookie',
+          'Location': '/read-cookie',
         })
         res.end()
         return
@@ -105,8 +105,8 @@ afterAll(() => {
   server.close()
 })
 
-describe('Louxios', () => {
-  test('makes a successful GET request', async () => {
+describe('louxios', () => {
+  it('makes a successful GET request', async () => {
     const client = new Louxios({ baseURL })
     const result = await client.get('/ok')
 
@@ -117,7 +117,7 @@ describe('Louxios', () => {
     }
   })
 
-  test('makes a successful POST request', async () => {
+  it('makes a successful POST request', async () => {
     const client = new Louxios({ baseURL })
     const result = await client.post('/ok')
 
@@ -127,7 +127,7 @@ describe('Louxios', () => {
     }
   })
 
-  test('returns error for non-2xx status', async () => {
+  it('returns error for non-2xx status', async () => {
     const client = new Louxios({ baseURL })
     const result = await client.get('/status-500')
 
@@ -138,7 +138,7 @@ describe('Louxios', () => {
     }
   })
 
-  test('respects custom validateStatus', async () => {
+  it('respects custom validateStatus', async () => {
     const client = new Louxios({
       baseURL,
       validateStatus: () => true,
@@ -151,7 +151,7 @@ describe('Louxios', () => {
     }
   })
 
-  test('respects per-request validateStatus', async () => {
+  it('respects per-request validateStatus', async () => {
     const client = new Louxios({ baseURL })
     const result = await client.get('/status-500', {
       validateStatus: () => true,
@@ -160,7 +160,7 @@ describe('Louxios', () => {
     expect(result.isOk()).toBe(true)
   })
 
-  test('persists cookies across requests', async () => {
+  it('persists cookies across requests', async () => {
     const client = new Louxios({ baseURL })
 
     await client.get('/set-cookie')
@@ -172,7 +172,7 @@ describe('Louxios', () => {
     }
   })
 
-  test('follows redirects', async () => {
+  it('follows redirects', async () => {
     const client = new Louxios()
     const result = await client.get(`${baseURL}/redirect`)
 
@@ -183,7 +183,7 @@ describe('Louxios', () => {
     }
   })
 
-  test('follows redirect chains', async () => {
+  it('follows redirect chains', async () => {
     const client = new Louxios()
     const result = await client.get(`${baseURL}/redirect-chain`)
 
@@ -193,7 +193,7 @@ describe('Louxios', () => {
     }
   })
 
-  test('stops following redirects at maxRedirects', async () => {
+  it('stops following redirects at maxRedirects', async () => {
     const client = new Louxios({ maxRedirects: 0 })
     const result = await client.get(`${baseURL}/redirect`)
 
@@ -203,7 +203,7 @@ describe('Louxios', () => {
     }
   })
 
-  test('stops at redirect loop after maxRedirects', async () => {
+  it('stops at redirect loop after maxRedirects', async () => {
     const client = new Louxios({ maxRedirects: 5 })
     const result = await client.get(`${baseURL}/redirect-loop`)
 
@@ -213,7 +213,7 @@ describe('Louxios', () => {
     }
   })
 
-  test('changes POST to GET on 303 redirect', async () => {
+  it('changes POST to GET on 303 redirect', async () => {
     const client = new Louxios()
     const result = await client.post(`${baseURL}/redirect-post`)
 
@@ -223,7 +223,7 @@ describe('Louxios', () => {
     }
   })
 
-  test('respects per-request maxRedirects override via request()', async () => {
+  it('respects per-request maxRedirects override via request()', async () => {
     const client = new Louxios({ maxRedirects: 10 })
     const result = await client.request({
       url: `${baseURL}/redirect`,
@@ -237,7 +237,7 @@ describe('Louxios', () => {
     }
   })
 
-  test('captures cookies set during redirect', async () => {
+  it('captures cookies set during redirect', async () => {
     const client = new Louxios()
     const result = await client.get(`${baseURL}/redirect-with-cookie`)
 
@@ -247,7 +247,7 @@ describe('Louxios', () => {
     }
   })
 
-  test('preserves POST method on 307 redirect', async () => {
+  it('preserves POST method on 307 redirect', async () => {
     const client = new Louxios()
     const result = await client.post(`${baseURL}/redirect-307`)
 
@@ -257,7 +257,7 @@ describe('Louxios', () => {
     }
   })
 
-  test('returns error when connection fails', async () => {
+  it('returns error when connection fails', async () => {
     const client = new Louxios({ baseURL: 'http://127.0.0.1:1' })
     const result = await client.get('/anything')
 
@@ -268,8 +268,8 @@ describe('Louxios', () => {
   })
 })
 
-describe('Louxios semaphore', () => {
-  test('throttles concurrent requests with timeoutBetweenRequests', async () => {
+describe('louxios semaphore', () => {
+  it('throttles concurrent requests with timeoutBetweenRequests', async () => {
     const client = new Louxios({
       baseURL,
       useSemaphore: true,
@@ -290,7 +290,7 @@ describe('Louxios semaphore', () => {
     expect(elapsed).toBeGreaterThanOrEqual(100)
   })
 
-  test('allows concurrent requests up to simultaneousRequests limit', async () => {
+  it('allows concurrent requests up to simultaneousRequests limit', async () => {
     const client = new Louxios({
       baseURL,
       useSemaphore: true,
@@ -307,7 +307,7 @@ describe('Louxios semaphore', () => {
     expect(r2.isOk()).toBe(true)
   })
 
-  test('does not throttle when semaphore is disabled', async () => {
+  it('does not throttle when semaphore is disabled', async () => {
     const client = new Louxios({ baseURL })
 
     const start = performance.now()
@@ -324,8 +324,8 @@ describe('Louxios semaphore', () => {
   })
 })
 
-describe('Louxios constructor validation', () => {
-  test('throws when simultaneousRequests is not a positive integer', () => {
+describe('louxios constructor validation', () => {
+  it('throws when simultaneousRequests is not a positive integer', () => {
     expect(() => new Louxios({
       useSemaphore: true,
       simultaneousRequests: 0,
@@ -333,7 +333,7 @@ describe('Louxios constructor validation', () => {
     })).toThrow()
   })
 
-  test('throws when timeoutBetweenRequests is negative', () => {
+  it('throws when timeoutBetweenRequests is negative', () => {
     expect(() => new Louxios({
       useSemaphore: true,
       simultaneousRequests: 1,
@@ -341,7 +341,7 @@ describe('Louxios constructor validation', () => {
     })).toThrow()
   })
 
-  test('creates client with valid semaphore config', () => {
+  it('creates client with valid semaphore config', () => {
     expect(() => new Louxios({
       useSemaphore: true,
       simultaneousRequests: 2,
@@ -349,13 +349,13 @@ describe('Louxios constructor validation', () => {
     })).not.toThrow()
   })
 
-  test('creates client without semaphore by default', () => {
+  it('creates client without semaphore by default', () => {
     expect(() => new Louxios()).not.toThrow()
   })
 })
 
-describe('Louxios proxy', () => {
-  test('setProxy returns ok for valid proxy agents', () => {
+describe('louxios proxy', () => {
+  it('setProxy returns ok for valid proxy agents', () => {
     const client = new Louxios()
     const result = client.setProxy({
       http: {} as any,
@@ -365,19 +365,19 @@ describe('Louxios proxy', () => {
     expect(result.isOk()).toBe(true)
   })
 
-  test('setProxy returns error for invalid proxy string', () => {
+  it('setProxy returns error for invalid proxy string', () => {
     const client = new Louxios()
     const result = client.setProxy('ftp://invalid-proxy')
 
     expect(result.isErr()).toBe(true)
   })
 
-  test('getAgent returns undefined when no proxy set', () => {
+  it('getAgent returns undefined when no proxy set', () => {
     const client = new Louxios()
     expect(client.getAgent('http')).toBeUndefined()
   })
 
-  test('getAgent returns agent after setProxy', () => {
+  it('getAgent returns agent after setProxy', () => {
     const client = new Louxios()
     const agent = {} as any
     client.setProxy({ http: agent, https: agent })
@@ -386,7 +386,7 @@ describe('Louxios proxy', () => {
     expect(client.getAgent('https')).toBe(agent)
   })
 
-  test('throws when constructed with invalid proxy', () => {
+  it('throws when constructed with invalid proxy', () => {
     expect(() => new Louxios({
       proxy: 'ftp://bad-proxy',
     })).toThrow()

@@ -2,9 +2,15 @@
   "name": "@lounya/louxios",
   "version": "1.0.0",
   "description": "Axios-based HTTP client with automatic cookie management, proxy support, and rate limiting",
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "license": "MIT",
+  "keywords": [
+    "axios",
+    "cookie",
+    "http-client",
+    "cookie-jar",
+    "proxy",
+    "semaphore"
+  ],
   "exports": {
     ".": {
       "import": {
@@ -17,6 +23,9 @@
       }
     }
   },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
@@ -26,15 +35,6 @@
     "test": "vitest run",
     "prepublishOnly": "npm run build"
   },
-  "keywords": [
-    "axios",
-    "cookie",
-    "http-client",
-    "cookie-jar",
-    "proxy",
-    "semaphore"
-  ],
-  "license": "MIT",
   "peerDependencies": {
     "axios": "^1.0.0"
   },
@@ -47,8 +47,8 @@
     "tough-cookie": "^6.0.0"
   },
   "devDependencies": {
-    "@types/node": "^25.3.5",
     "@antfu/eslint-config": "^7.6.1",
+    "@types/node": "^25.3.5",
     "axios": "^1.13.6",
     "eslint": "^10.0.2",
     "tsup": "^8.5.1",

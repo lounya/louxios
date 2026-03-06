@@ -23,7 +23,8 @@ const result = await client.get('https://example.com/api/data')
 
 if (result.isErr()) {
   console.error(result.error.toString())
-} else {
+}
+else {
   console.log(result.value.data)
 }
 ```
@@ -86,7 +87,7 @@ Use the semaphore to limit concurrent requests and add delays between them:
 ```typescript
 const client = new Louxios({
   useSemaphore: true,
-  simultaneousRequests: 3,   // max 3 concurrent requests
+  simultaneousRequests: 3, // max 3 concurrent requests
   timeoutBetweenRequests: 500, // 500ms cooldown per slot after each request
 })
 ```
@@ -111,7 +112,7 @@ By default, only 2xx responses are considered successful. You can customize this
 
 ```typescript
 const client = new Louxios({
-  validateStatus: (status) => status < 500, // treat 4xx as success too
+  validateStatus: status => status < 500, // treat 4xx as success too
 })
 ```
 
