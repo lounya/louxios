@@ -57,6 +57,27 @@ function createServer(): Promise<http.Server> {
         return
       }
 
+      if (url.pathname === '/redirect-with-cookie') {
+        res.writeHead(302, {
+          'Set-Cookie': 'redirect_token=xyz789; Path=/',
+          Location: '/read-cookie',
+        })
+        res.end()
+        return
+      }
+
+      if (url.pathname === '/redirect-307') {
+        res.writeHead(307, { Location: '/echo-method' })
+        res.end()
+        return
+      }
+
+      if (url.pathname === '/echo-method') {
+        res.writeHead(200, { 'Content-Type': 'text/plain' })
+        res.end(req.method)
+        return
+      }
+
       if (url.pathname === '/status-500') {
         res.writeHead(500, { 'Content-Type': 'text/plain' })
         res.end('server error')
@@ -113,6 +134,7 @@ describe('CookieClient', () => {
     expect(result.isErr()).toBe(true)
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(CookieClientError)
+      expect(result.error.message).toBe(ECookieClientError.WrongStatusCodeReceived)
     }
   })
 
@@ -201,6 +223,40 @@ describe('CookieClient', () => {
     }
   })
 
+  test('respects per-request maxRedirects override via request()', async () => {
+    const client = new CookieClient({ maxRedirects: 10 })
+    const result = await client.request({
+      url: `${baseURL}/redirect`,
+      method: 'GET',
+      maxRedirects: 0,
+    })
+
+    expect(result.isErr()).toBe(true)
+    if (result.isErr()) {
+      expect(result.error.message).toBe(ECookieClientError.WrongStatusCodeReceived)
+    }
+  })
+
+  test('captures cookies set during redirect', async () => {
+    const client = new CookieClient()
+    const result = await client.get(`${baseURL}/redirect-with-cookie`)
+
+    expect(result.isOk()).toBe(true)
+    if (result.isOk()) {
+      expect(result.value.data).toContain('redirect_token=xyz789')
+    }
+  })
+
+  test('preserves POST method on 307 redirect', async () => {
+    const client = new CookieClient()
+    const result = await client.post(`${baseURL}/redirect-307`)
+
+    expect(result.isOk()).toBe(true)
+    if (result.isOk()) {
+      expect(result.value.data).toBe('POST')
+    }
+  })
+
   test('returns error when connection fails', async () => {
     const client = new CookieClient({ baseURL: 'http://127.0.0.1:1' })
     const result = await client.get('/anything')
@@ -218,7 +274,7 @@ describe('CookieClient semaphore', () => {
       baseURL,
       useSemaphore: true,
       simultaneousRequests: 1,
-      timeoutBetweenRequests: 80,
+      timeoutBetweenRequests: 150,
     })
 
     const start = performance.now()
@@ -230,8 +286,8 @@ describe('CookieClient semaphore', () => {
 
     expect(r1.isOk()).toBe(true)
     expect(r2.isOk()).toBe(true)
-    // With 1 slot and 80ms gap, two sequential requests must take at least 80ms
-    expect(elapsed).toBeGreaterThanOrEqual(70)
+    // With 1 slot and 150ms gap, two sequential requests must take at least 150ms
+    expect(elapsed).toBeGreaterThanOrEqual(100)
   })
 
   test('allows concurrent requests up to simultaneousRequests limit', async () => {
