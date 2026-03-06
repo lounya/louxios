@@ -1,5 +1,5 @@
-export { default as default } from './CookieClient'
-export { default as CookieClient } from './CookieClient'
+export { default as default } from './cookie-client'
+export { default as CookieClient } from './cookie-client'
 export { ErrorBase, CookieClientError, ECookieClientError } from './errors'
 export { getAgents, getProxyProtocol, EProxyProtocol } from './proxy'
 export { sleep } from './utils'

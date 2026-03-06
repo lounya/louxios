@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeAll, afterAll } from 'vitest'
 import http from 'node:http'
 import type { AddressInfo } from 'node:net'
-import CookieClient from '../src/CookieClient'
+import CookieClient from '../src/cookie-client'
 import { CookieClientError, ECookieClientError } from '../src/errors'
 
 let server: http.Server
