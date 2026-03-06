@@ -49,13 +49,13 @@ export class ErrorBase extends Error {
   [cause]: ${this.causeToString()}`
   }
 }
-export enum ECookieClientError {
+export enum ELouxiosError {
   FatalRequestError = 'A fatal error occurred during the HTTP request.',
   WrongStatusCodeReceived = 'Incorrect status code received during the HTTP request.',
 }
 
-export class CookieClientError extends ErrorBase {
+export class LouxiosError extends ErrorBase {
   constructor(message: string, cause: unknown) {
-    super('Cookie Client', message, cause)
+    super('Louxios', message, cause)
   }
 }

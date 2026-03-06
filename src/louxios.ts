@@ -5,12 +5,12 @@ import { ok, err, type Result } from 'neverthrow'
 import { Semaphore } from 'async-mutex'
 import axios from 'axios'
 import { CookieJar } from 'tough-cookie'
-import { CookieClientError, ECookieClientError, ErrorBase } from './errors'
+import { LouxiosError, ELouxiosError, ErrorBase } from './errors'
 import { handleResponse, modifyRequest, resolveUrl } from './interceptors'
 import { getAgents } from './proxy'
 import { sleep } from './utils'
 
-export default class CookieClient {
+export default class Louxios {
   private useSemaphore: boolean = false
 
   private semaphore!: Semaphore
@@ -35,14 +35,14 @@ export default class CookieClient {
 
     if (useSemaphore) {
       if (!Number.isInteger(simultaneousRequests) || simultaneousRequests < 1) {
-        throw new CookieClientError(
+        throw new LouxiosError(
           'simultaneousRequests must be a positive integer',
           { simultaneousRequests },
         )
       }
 
       if (typeof timeoutBetweenRequests !== 'number' || timeoutBetweenRequests < 0 || !Number.isFinite(timeoutBetweenRequests)) {
-        throw new CookieClientError(
+        throw new LouxiosError(
           'timeoutBetweenRequests must be a non-negative finite number',
           { timeoutBetweenRequests },
         )
@@ -94,7 +94,7 @@ export default class CookieClient {
 
   async request<T = unknown>(
     initConfig: AxiosRequestConfig,
-  ): Promise<Result<AxiosResponse<T>, CookieClientError>> {
+  ): Promise<Result<AxiosResponse<T>, LouxiosError>> {
     const { maxRedirects: initMaxRedirects, ...requestConfig } = initConfig
     const maxRedirects = initMaxRedirects ?? this.maxRedirects
 
@@ -117,7 +117,7 @@ export default class CookieClient {
     requestConfig: AxiosRequestConfig,
     maxRedirects: number,
     redirectCount: number = 0,
-  ): Promise<Result<AxiosResponse<T>, CookieClientError>> {
+  ): Promise<Result<AxiosResponse<T>, LouxiosError>> {
     try {
       const response = await this.axiosInstance.request(requestConfig)
 
@@ -160,13 +160,13 @@ export default class CookieClient {
         return ok(response)
       }
 
-      return err(new CookieClientError(
-        ECookieClientError.WrongStatusCodeReceived,
+      return err(new LouxiosError(
+        ELouxiosError.WrongStatusCodeReceived,
         response,
       ))
     }
     catch (e) {
-      return err(new CookieClientError(ECookieClientError.FatalRequestError, e))
+      return err(new LouxiosError(ELouxiosError.FatalRequestError, e))
     }
   }
 
@@ -181,7 +181,7 @@ export default class CookieClient {
   get<T = unknown>(
     url: string,
     config: AxiosRequestConfig = {},
-  ): Promise<Result<AxiosResponse<T>, CookieClientError>> {
+  ): Promise<Result<AxiosResponse<T>, LouxiosError>> {
     return this.request({
       ...config,
       url,
@@ -192,7 +192,7 @@ export default class CookieClient {
   post<T = unknown>(
     url: string,
     config: AxiosRequestConfig = {},
-  ): Promise<Result<AxiosResponse<T>, CookieClientError>> {
+  ): Promise<Result<AxiosResponse<T>, LouxiosError>> {
     return this.request({
       ...config,
       url,

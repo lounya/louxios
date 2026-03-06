@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest'
-import { ErrorBase, CookieClientError, ECookieClientError } from '../src/errors'
+import { ErrorBase, LouxiosError, ELouxiosError } from '../src/errors'
 
 describe('ErrorBase', () => {
   test('stores caller, message, and cause', () => {
@@ -48,20 +48,20 @@ describe('ErrorBase', () => {
   })
 })
 
-describe('CookieClientError', () => {
-  test('sets caller to Cookie Client', () => {
-    const error = new CookieClientError('test', null)
-    expect(error.caller).toBe('Cookie Client')
+describe('LouxiosError', () => {
+  test('sets caller to Louxios', () => {
+    const error = new LouxiosError('test', null)
+    expect(error.caller).toBe('Louxios')
   })
 
   test('is an instance of ErrorBase', () => {
-    const error = new CookieClientError('test', null)
+    const error = new LouxiosError('test', null)
     expect(error).toBeInstanceOf(ErrorBase)
     expect(error).toBeInstanceOf(Error)
   })
 
-  test('works with ECookieClientError enum values', () => {
-    const error = new CookieClientError(ECookieClientError.FatalRequestError, null)
-    expect(error.message).toBe(ECookieClientError.FatalRequestError)
+  test('works with ELouxiosError enum values', () => {
+    const error = new LouxiosError(ELouxiosError.FatalRequestError, null)
+    expect(error.message).toBe(ELouxiosError.FatalRequestError)
   })
 })
