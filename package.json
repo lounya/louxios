@@ -1,6 +1,6 @@
 {
   "name": "@lounya/louxios",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Axios-based HTTP client with automatic cookie management, proxy support, and rate limiting",
   "license": "MIT",
   "repository": {
