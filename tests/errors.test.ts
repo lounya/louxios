@@ -1,3 +1,4 @@
+import util from 'node:util'
 import { describe, expect, it } from 'vitest'
 import { ELouxiosError, ErrorBase, LouxiosError } from '../src/errors'
 
@@ -49,6 +50,19 @@ describe('errorBase', () => {
 
     expect(str).not.toContain('more characters')
     expect(str).toContain(longString)
+  })
+
+  it('causeToString survives a cause with throwing custom inspect', () => {
+    const evil = {
+      [util.inspect.custom]() {
+        throw new Error('boom')
+      },
+    }
+    const error = new ErrorBase('Test', 'msg', evil)
+
+    expect(() => error.causeToString()).not.toThrow()
+    expect(error.causeToString()).toContain('unserializable cause')
+    expect(error.causeToString()).toContain('boom')
   })
 
   it('handles null cause', () => {

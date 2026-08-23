@@ -37,11 +37,16 @@ export class ErrorBase extends Error {
   }
 
   causeToString(): string {
-    return util.inspect(this.cause, {
-      depth: null,
-      maxStringLength: null,
-      maxArrayLength: null,
-    })
+    try {
+      return util.inspect(this.cause, {
+        depth: null,
+        maxStringLength: null,
+        maxArrayLength: null,
+      })
+    }
+    catch (error) {
+      return `<unserializable cause: ${error instanceof Error ? error.message : String(error)}>`
+    }
   }
 
   override toString(): string {
