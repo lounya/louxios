@@ -32,14 +32,23 @@ describe('errorBase', () => {
     expect(str).toContain('detail')
   })
 
-  it('causeToString limits inspection depth', () => {
+  it('causeToString does not truncate nested objects', () => {
     const deepCause = { l0: { l1: { l2: { l3: { l4: { l5: { l6: 'hidden' } } } } } } }
     const error = new ErrorBase('Test', 'msg', deepCause)
     const str = error.causeToString()
 
     expect(str).toContain('l0')
     expect(str).toContain('l4')
-    expect(str).not.toContain('hidden')
+    expect(str).toContain('hidden')
+  })
+
+  it('causeToString keeps long strings intact', () => {
+    const longString = 'x'.repeat(5000)
+    const error = new ErrorBase('Test', 'msg', { data: longString })
+    const str = error.causeToString()
+
+    expect(str).not.toContain('more characters')
+    expect(str).toContain(longString)
   })
 
   it('handles null cause', () => {

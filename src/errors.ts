@@ -38,9 +38,9 @@ export class ErrorBase extends Error {
 
   causeToString(): string {
     return util.inspect(this.cause, {
-      depth: 4,
-      maxStringLength: 1024,
-      maxArrayLength: 20,
+      depth: null,
+      maxStringLength: null,
+      maxArrayLength: null,
     })
   }
 
